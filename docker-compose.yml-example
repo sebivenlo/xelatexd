@@ -1,0 +1,12 @@
+version : "3.9"
+
+services:
+    xelatexd:
+        image: xelatexd
+        container_name: xelatexd
+        volumes:
+            - ~/texmf:/home/latex/texmf
+            - ./:/home/latex/wd
+        working_dir: /home/latex/wd
+        command: rcmd
+

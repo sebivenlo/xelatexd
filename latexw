@@ -1,0 +1,35 @@
+#!/bin/bash
+## latexw and bibtexw script after the idea of gradlew and mvnw wrappers.
+## they implement some conventions used in this repo:
+## 1. the project to be built will derive its name from the root directory.
+## 2. All files to be 'include'd live under the subdir chapters, no exceptions.
+##    Any files inputted may live anywhere but conventionally live under configuration.
+## 3. The work directory where Xlatex and bibtex drop their auxiliary files such as .log. ,. lot,.aux etc is 'out'. This out directory is created when it does not exist, with one subdir 'chapters' This convention keeps your root directory clean and makes removing compiler leftovers easy by with a simple `rm -fr out`
+
+## we use xelatex by default for its convenience in processing UTF-8 and the simplicity of choosing fonts.
+LATEX='docker exec -u latex -i xelatexd xelatex'
+BIBTEX='docker exec -u latex -i xelatexd bibtex'
+JOBNAME=$(basename $(pwd))
+mkdir -p out/{chapters,partials}
+scriptname=$(basename $0)
+if ! $(docker ps -q --format "{{.Names}}" | grep -q xelatexd) ; then
+    echo "starting xelatexd docker container "
+    docker run -it -u latex -w /home/latex/wd --rm \
+           --name xelatexd \
+           -v ${PWD}/:/home/latex/wd \
+           -v ${HOME}/texmf:/home/latex/texmf \
+           aergus/latex:latest bash
+fi
+case ${scriptname} in
+    latexw)
+	${LATEX} -output-directory out -recorder \
+		 -interaction=batchmode -jobname=${JOBNAME} "$@" \
+	    || cat out/*.log
+	;;
+    bibtexw)
+	${BIBTEX} out/${JOBNAME}
+	;;
+    *)
+	echo ${scriptname} not understood
+	;;
+esac

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+pipe=/tmp/latexpipe
+
+trap "rm -f $pipe" EXIT
+
+if [[ ! -p $pipe ]]; then
+    mkfifo $pipe
+fi
+
+while true; do
+    if read -a line < ${pipe}; then
+        set $(echo ${line[*]})
+        cmd=$1; shift
+        case ${cmd} in
+            quit)
+                break;
+                ;;
+            xelatex)
+                echo runnig xelatex "$@"
+               ;; 
+        esac
+    fi
+done
+
+rm ${pipe}

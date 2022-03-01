@@ -1,0 +1,9 @@
+#!/bin/bash
+pipe=/tmp/latexpipe
+if [ ! -p ${pipe} ]; then
+    echo "read command not started"
+    exit 1
+fi
+echo "quit" > ${pipe}
+
+    
